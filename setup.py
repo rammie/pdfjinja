@@ -13,10 +13,9 @@ f = open(os.path.join(os.path.dirname(__file__), "README.rst"))
 readme = f.read()
 f.close()
 
-
 setup(
     name="pdfjinja",
-    version=__import__("pdfjinja").__version__,
+    version="0.0.2",
     author="Ram Mehta",
     author_email="ram.mehta@gmail.com",
     url="http://github.com/rammie/pdfjinja/",
