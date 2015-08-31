@@ -1,0 +1,15 @@
+{
+  "firstName": "Faye",
+  "lastName": "Valentine",
+  "address": {
+    "street": "223B Baker Street",
+    "apt": "6F",
+    "city": "London",
+    "zipcode": 94455
+  },
+  "spirit": "Panda",
+  "evil": true,
+  "language": {
+    "english": true
+  }
+}
