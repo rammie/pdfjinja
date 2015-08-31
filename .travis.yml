@@ -1,11 +1,20 @@
 language: python
 python:
   - 2.7
-
+sudo: false
 install: pip install pdfjinja
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq tk8.6-dev python-tk tcl8.6-dev
-  - sudo apt-get install -qq libtiff5-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev
-  - sudo apt-get install -qq pdftk libmagickwand-dev
+addons:
+  apt:
+    packages:
+    - tcl8.6-dev
+    - tk8.6-dev
+    - python-tk
+    - libtiff5-dev
+    - libjpeg8-dev
+    - zlib1g-dev
+    - libfreetype6-dev
+    - liblcms2-dev
+    - libwebp-dev
+    - libmagickwand-dev
+    - pdftk
 script: python tests.py
