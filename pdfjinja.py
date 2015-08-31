@@ -171,8 +171,8 @@ class PdfJinja(object):
 
         p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate(fdf)
-        if stderr:
-            logger.error(stderr)
+        if stderr.strip():
+            raise IOError(stderr)
 
         return StringIO.StringIO(stdout)
 
