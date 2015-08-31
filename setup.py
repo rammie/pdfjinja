@@ -16,7 +16,7 @@ f.close()
 
 setup(
     name="pdfjinja",
-    version="0.0.1",
+    version=__import__("pdfjinja").__version__,
     author="Ram Mehta",
     author_email="ram.mehta@gmail.com",
     url="http://github.com/rammie/pdfjinja/",

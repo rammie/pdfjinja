@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """ Use jinja2 templates to fill and sign PDF forms. """
 
+__version__ = "0.0.1"
+
+
 import argparse
 import datetime
 import logging
