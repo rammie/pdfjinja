@@ -1,13 +1,14 @@
 pdfjinja
 ========
 
+.. image:: https://api.travis-ci.org/rammie/pdfjinja.png?branch=master
+  :target: https://travis-ci.org/rammie/pdfjinja
+
+
 Use jinja templates to fill and sign PDF forms.
 
 You would like to fill out a PDF form using data from an external source such as a database or an excel file. Use a PDF editing software to edit the form. Use the tooltip field to specifiy a jinja template.
 
-
-.. image:: https://api.travis-ci.org/rammie/pdfjinja.png?branch=master
-  :target: https://travis-ci.org/rammie/pdfjinja
 
 Dependencies
 ------------
