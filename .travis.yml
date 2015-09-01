@@ -6,6 +6,6 @@ install: pip install .
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq tk8.5-dev python-tk tcl8.5-dev liblcms2-dev
-  - sudo apt-get install -qq libtiff5-dev libjpeg8-dev zlib1g-dev libwebp-dev
-  - sudo apt-get install -qq libfreetype6-dev pdftk libmagickwand-dev
+  - sudo apt-get install -qq libjpeg8-dev zlib1g-dev libfreetype6-dev
+  - sudo apt-get install -qq libmagickwand-dev pdftk
 script: python tests.py
