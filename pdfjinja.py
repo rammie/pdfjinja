@@ -41,21 +41,62 @@ logger.addHandler(NullHandler())
 
 class Attachment(object):
 
-    def __init__(self, data, text):
-        self.data = data
-        self.text = text
+    label_x = 8
 
-    @property
-    def lines(self):
-        if self.text:
-            return self.text.split(os.linesep)
-        return []
+    label_y = 8
+
+    font = None
+
+    fontsize = 12
+
+    def __init__(self, data, dimensions=None, text=None, font=None):
+        img = Image.open(data)
+        self.img = img
+        self.dimensions = dimensions or (0, 0, img.size[0], img.size[1])
+
+        if img.mode == "RGBA":
+            self.img = Image.new("RGB", img.size, (255, 255, 255))
+            mask = img.split()[-1]  # 3 is the alpha channel
+            self.img.paste(img, mask=mask)
+
+        if font is not None:
+            self.font = font
+
+        if text is not None:
+            font = ImageFont.truetype(self.font, self.fontsize)
+            lines = text.split(os.linesep)
+            dims = [font.getsize(l) for l in lines]
+            w = sum(w for w, h in dims)
+            h = sum(h for w, h in dims)
+
+            self.label = Image.new("RGB", (w, h), (255, 255, 255))
+            draw = ImageDraw.Draw(self.label)
+
+            y = 0
+            for (lw, lh), line in zip(dims, lines):
+                draw.text((0, y), line, (0, 0, 0), font=font)
+                y += lh
+
+    def pdf(self):
+        stream = StringIO.StringIO()
+        pdf = canvas.Canvas(stream)
+        w, h = self.img.size
+        pdf.drawImage(ImageReader(self.img), *self.dimensions)
+
+        if hasattr(self, "label"):
+            w, h = self.label.size
+            x, y = self.label_x, self.label_y
+            pdf.drawImage(ImageReader(self.label), x, y, w, h)
+
+        pdf.save()
+        return PdfFileReader(stream).getPage(0)
 
 
 class PdfJinja(object):
 
     def __init__(self, filename, jinja_env=None):
         self.jinja_env = Environment()
+        self.context = None
         self.fields = {}
         self.watermarks = []
         self.filename = filename
@@ -66,9 +107,23 @@ class PdfJinja(object):
     def register_filters(self):
         self.jinja_env.filters.update(dict(
             date=self.format_date,
+            paste=self.paste,
+            check=self.check,
             X=lambda v: "X" if v else " ",
             Y=lambda v: "Y" if v else "N",
         ))
+
+    def check(self, data):
+        self.rendered[self.context["name"]] = bool(data)
+        return bool(data)
+
+    def paste(self, data):
+        rect = self.context["rect"]
+        x, y = rect[0], rect[1]
+        w, h = rect[2] - x, rect[3] - y
+        pdf = Attachment(data, dimensions=(x, y, w, h)).pdf()
+        self.watermarks.append((self.context["page"], pdf))
+        return " "
 
     def parse_pdf(self, fp):
         parser = PDFParser(fp)
@@ -83,9 +138,9 @@ class PdfJinja(object):
 
         for pgnum, page in enumerate(PDFPage.create_pages(doc)):
             interpreter.process_page(page)
-            page.annots and self.parse_annotations(page)
+            page.annots and self.parse_annotations(pgnum, page)
 
-    def parse_annotations(self, page):
+    def parse_annotations(self, pgnum, page):
         annots = page.annots
         if isinstance(page.annots, PDFObjRef):
             annots = page.annots.resolve()
@@ -98,9 +153,10 @@ class PdfJinja(object):
 
         for ref in widgets:
             name = ref["T"]
-            field = self.fields.setdefault(name, {})
-            if "FT" in ref and ref["FT"].name in ("Btn", "Tx", "Ch"):
+            field = self.fields.setdefault(name, {"name": name, "page": pgnum})
+            if "FT" in ref and ref["FT"].name in ("Btn", "Tx", "Ch", "Sig"):
                 field["rect"] = ref["Rect"]
+
             if "TU" in ref:
                 try:
                     tmpl = ref["TU"]
@@ -108,32 +164,10 @@ class PdfJinja(object):
                 except UnicodeDecodeError as err:
                     logger.error("%s: %s %s", name, tmpl, err)
 
-    def get_watermark(self, data, pdffield):
-        img = Image.open(data)
-        img = img.crop((22, 0, 278, 70))
-        img.load()
-
-        background = Image.new("RGB", img.size, (255, 255, 255))
-        mask = img.split()[-1]  # 3 is the alpha channel
-        background.paste(img, mask=mask)
-
-        stream = StringIO.StringIO()
-        imgpdf = canvas.Canvas(stream)
-        rect = pdffield["rect"]
-        w = rect[2] - rect[0]
-        h = rect[3] - rect[1]
-        imgpdf.drawImage(ImageReader(background), rect[0], rect[1], w, h)
-        imgpdf.save()
-
-        stream.seek(0)
-        return PdfFileReader(stream).getPage(0)
-
     def template_args(self, data):
         kwargs = {}
-        kwargs.update({
-            "paste": self.paste,
-            "today": datetime.datetime.today().strftime("%m/%d/%y")
-        })
+        today = datetime.datetime.today().strftime("%m/%d/%y")
+        kwargs.update({"today": today})
         kwargs.update(data)
         return kwargs
 
@@ -144,16 +178,6 @@ class PdfJinja(object):
         ts = time.strptime(datestr, "%Y-%m-%dT%H:%M:%S.%fZ")
         dt = datetime.datetime.fromtimestamp(time.mktime(ts))
         return dt.strftime("%m/%d/%y")
-
-    def paste(self, fieldname, data, pagenumber):
-        try:
-            pdffield = self.fields[fieldname]
-        except (KeyError, UndefinedError):
-            logger.error("Unable to watermark %s", fieldname, exc_info=True)
-            return " "
-        else:
-            watermark = self.get_watermark(data, pdffield)
-            self.watermarks.append((pagenumber, watermark))
 
     def exec_pdftk(self, data):
         fdf = forge_fdf("", data.items(), [], [], [])
@@ -173,42 +197,26 @@ class PdfJinja(object):
 
         return StringIO.StringIO(stdout)
 
-    def attach(self, attachment):
-        docimage = Image.open(attachment.data)
-
-        labelimg = Image.new("RGB", (400, 100), (255, 255, 255))
-        draw = ImageDraw.Draw(labelimg)
-        font = ImageFont.truetype(attachment.font, 12)
-
-        y_text, w = 0, 400
-        for line in attachment.lines:
-            width, height = font.getsize(line)
-            draw.text((0, y_text), line, (0, 0, 0), font=font)
-            y_text += height
-
-        docstream = StringIO.StringIO()
-        docpdf = canvas.Canvas(docstream)
-        w, h = docimage.size
-        docpdf.drawImage(ImageReader(docimage), 8, 200, w, h)
-
-        w, h = labelimg.size
-        docpdf.drawImage(ImageReader(labelimg), 8, 675, w, h)
-
-        docpdf.save()
-        return PdfFileReader(docstream).getPage(0)
-
     def __call__(self, data, attachments=[], pages=None):
-        rendered = {}
-        for field, v in self.fields.items():
-            if "template" in v:
-                try:
-                    template = v["template"]
-                    kwargs = self.template_args(data)
-                    rendered[field] = template.render(**kwargs)
-                except UndefinedError as err:
-                    logger.error("%s: %s %s", field, template, err)
+        self.rendered = {}
+        for field, ctx in self.fields.items():
+            if "template" not in ctx:
+                continue
 
-        filled = PdfFileReader(self.exec_pdftk(rendered))
+            self.context = ctx
+            kwargs = self.template_args(data)
+            template = self.context["template"]
+
+            try:
+                rendered_field = template.render(**kwargs)
+            except UndefinedError as err:
+                logger.error("%s: %s %s", field, template, err)
+            else:
+                # Skip the field if it is already rendered by filter
+                if field not in self.rendered:
+                    self.rendered[field] = rendered_field
+
+        filled = PdfFileReader(self.exec_pdftk(self.rendered))
         for pagenumber, watermark in self.watermarks:
             page = filled.getPage(pagenumber)
             page.mergePage(watermark)
@@ -218,15 +226,18 @@ class PdfJinja(object):
         for p in pages:
             output.addPage(filled.getPage(p))
 
-        for attachment in attachments or []:
-            page = output.addBlankPage()
-            page.mergePage(self.attach(data, attachment))
+        for attachment in attachments:
+            output.addBlankPage().mergePage(attachment.pdf())
 
         return output
 
 
 def parse_args(description):
     parser = argparse.ArgumentParser(description=description)
+    parser.add_argument(
+        '-f', '--font', type=str, default=None,
+        help="TTF font for attachment labels.")
+
     parser.add_argument(
         '-j', '--json', type=argparse.FileType('rb'), default=sys.stdin,
         help="JSON format file with data.")
@@ -254,8 +265,12 @@ def main():
 
     import json
     data = json.loads(args.json.read())
+    Attachment.font = args.font
+    attachments = [
+        Attachment(**kwargs) for kwargs in data.pop("attachments", [])
+    ]
 
-    output = pdfparser(data, pages)
+    output = pdfparser(data, attachments, pages)
     output.write(args.out)
 
 

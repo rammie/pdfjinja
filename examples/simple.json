@@ -12,10 +12,5 @@
   "evil": true,
   "language": {
     "english": true
-  },
-  "attachments": [{
-      "data": "examples/attachment.png",
-      "text": "Tux\nFriendly Penguin\nMascot :)",
-      "dimensions": [100, 200, 400, 400]
-  }]
+  }
 }

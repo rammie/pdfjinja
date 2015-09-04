@@ -5,7 +5,7 @@ import sys
 import unittest
 
 from contextlib import contextmanager
-from pdfjinja import PdfJinja
+from pdfjinja import Attachment, PdfJinja
 
 
 class PdfJinjaTestCase(unittest.TestCase):
@@ -15,7 +15,11 @@ class PdfJinjaTestCase(unittest.TestCase):
     def setUp(self):
         pdffile = os.path.join(self.datadir, "sample.pdf")
         jsonfile = os.path.join(self.datadir, "sample.json")
+        Attachment.font = "examples/open-sans/regular.ttf"
         self.data = json.loads(open(jsonfile).read())
+        self.attachments = [
+            Attachment(**kwargs) for kwargs in self.data.pop("attachments")
+        ]
         self.pdfjinja = PdfJinja(pdffile)
 
     def tearDown(self):
@@ -29,7 +33,7 @@ class PdfJinjaTestCase(unittest.TestCase):
         self.assertFalse(value is None)
 
     def test_init(self):
-        output = self.pdfjinja(self.data)
+        output = self.pdfjinja(self.data, self.attachments)
         outfile = StringIO.StringIO()
         output.write(outfile)
         outfile.seek(0)
