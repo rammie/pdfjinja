@@ -209,7 +209,7 @@ class PdfJinja(object):
 
             try:
                 rendered_field = template.render(**kwargs)
-            except UndefinedError as err:
+            except Exception as err:
                 logger.error("%s: %s %s", field, template, err)
             else:
                 # Skip the field if it is already rendered by filter

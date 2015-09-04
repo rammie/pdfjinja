@@ -5,6 +5,15 @@ releases, visit GitHub:
 
 https://github.com/rammie/pdfjinja/releases
 
+## 0.0.5
+
+### Bugs
+
+* Catch and log all errors in template rendering.
+
+[View commits](https://github.com/rammie/peewee/compare/0.0.4...0.0.3)
+
+
 ## 0.0.4
 
 ### New features
