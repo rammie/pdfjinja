@@ -94,6 +94,8 @@ class Attachment(object):
 
 class PdfJinja(object):
 
+    Attachment = Attachment
+
     def __init__(self, filename, jinja_env=None):
         self.jinja_env = Environment()
         self.context = None
@@ -121,7 +123,7 @@ class PdfJinja(object):
         rect = self.context["rect"]
         x, y = rect[0], rect[1]
         w, h = rect[2] - x, rect[3] - y
-        pdf = Attachment(data, dimensions=(x, y, w, h)).pdf()
+        pdf = self.Attachment(data, dimensions=(x, y, w, h)).pdf()
         self.watermarks.append((self.context["page"], pdf))
         return " "
 

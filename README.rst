@@ -15,7 +15,7 @@ the form. Use the tooltip field to specifiy a jinja template.
 Dependencies
 ------------
 
-You need a pdftk along. If you want to paste images, you'll need whatever
+You'll the pdftk library. If you want to paste images, you'll need whatever
 dependencies are necessary for Pillow to load your preferred image format.
 Most of the packages below are taken from the Pillow documentation. You don't
 need all of them. In most cases, just pdftk will do.
