@@ -11,7 +11,6 @@ import time
 
 from fdfgen import forge_fdf
 from jinja2 import Environment
-from jinja2.exceptions import UndefinedError
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfpage import PDFPage
