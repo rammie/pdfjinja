@@ -10,7 +10,7 @@ import sys
 import time
 
 from fdfgen import forge_fdf
-from jinja2 import Environment
+from jinja2 import Environment, TemplateSyntaxError
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfpage import PDFPage
@@ -162,7 +162,7 @@ class PdfJinja(object):
                 try:
                     tmpl = ref["TU"]
                     field["template"] = self.jinja_env.from_string(tmpl)
-                except UnicodeDecodeError as err:
+                except (UnicodeDecodeError, TemplateSyntaxError) as err:
                     logger.error("%s: %s %s", name, tmpl, err)
 
     def template_args(self, data):

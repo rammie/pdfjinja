@@ -15,7 +15,7 @@ f.close()
 
 setup(
     name="pdfjinja",
-    version="0.0.6",
+    version="0.0.7",
     author="Ram Mehta",
     author_email="ram.mehta@gmail.com",
     url="http://github.com/rammie/pdfjinja/",
