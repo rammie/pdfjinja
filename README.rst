@@ -1,6 +1,9 @@
 pdfjinja
 ========
 
+.. image:: https://img.shields.io/badge/License-MIT%20License-blue.svg
+  :target: https://raw.githubusercontent.com/rammie/pdfjinja/master/LICENSE
+
 .. image:: https://api.travis-ci.org/rammie/pdfjinja.png?branch=master
   :target: https://travis-ci.org/rammie/pdfjinja
 
