@@ -24,10 +24,10 @@ setup(
     py_modules=["pdfjinja"],
     entry_points={"console_scripts": ["pdfjinja = pdfjinja:main"]},
     install_requires=[
-        "fdfgen==0.11.0",
+        "fdfgen>=0.12.0",
         "jinja2>=2.8",
-        "pdfminer==20140328",
-        "pillow>=2.4.0",
-        "pyPdf==1.13",
-        "reportlab==3.1.44"
+        "pdfminer.six==20160202",
+        "Pillow>=3.2.0",
+        "pyPdf>=1.13",
+        "reportlab>=3.3.0"
     ])
