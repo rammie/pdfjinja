@@ -19,7 +19,7 @@ from pdfminer.pdftypes import PDFObjRef
 from pdfminer.layout import LAParams
 from pdfminer.converter import PDFPageAggregator
 from PIL import Image, ImageDraw, ImageFont
-from pyPdf import PdfFileWriter, PdfFileReader
+from PyPDF2 import PdfFileWriter, PdfFileReader
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from subprocess import Popen, PIPE
