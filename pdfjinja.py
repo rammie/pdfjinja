@@ -4,9 +4,8 @@
 import argparse
 import datetime
 import logging
-import cStringIO as StringIO
-import os
 import sys
+import os
 import time
 
 from fdfgen import forge_fdf
@@ -20,10 +19,21 @@ from pdfminer.pdftypes import PDFObjRef
 from pdfminer.layout import LAParams
 from pdfminer.converter import PDFPageAggregator
 from PIL import Image, ImageDraw, ImageFont
-from pyPdf import PdfFileWriter, PdfFileReader
+from PyPDF2 import PdfFileWriter, PdfFileReader
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from subprocess import Popen, PIPE
+try:
+    from cStringIO import StringIO as BytesIO
+except ImportError:
+    try:
+        from StringIO import StringIO as BytesIO
+    except ImportError:
+        from io import BytesIO
+
+PY3 = False
+if sys.version_info[0] == 3:
+    PY3 = True
 
 
 try:
@@ -77,7 +87,7 @@ class Attachment(object):
                 y += lh
 
     def pdf(self):
-        stream = StringIO.StringIO()
+        stream = BytesIO()
         pdf = canvas.Canvas(stream)
         w, h = self.img.size
         pdf.drawImage(ImageReader(self.img), *self.dimensions)
@@ -159,8 +169,12 @@ class PdfJinja(object):
                 field["rect"] = ref["Rect"]
 
             if "TU" in ref:
+                tmpl = ref["TU"]
                 try:
-                    tmpl = ref["TU"]
+                    if ref["TU"].startswith(b"\xfe"):
+                        tmpl = tmpl.decode("utf-16")
+                    else:
+                        tmpl = tmpl.decode("utf-8")
                     field["template"] = self.jinja_env.from_string(tmpl)
                 except (UnicodeDecodeError, TemplateSyntaxError) as err:
                     logger.error("%s: %s %s", name, tmpl, err)
@@ -196,7 +210,7 @@ class PdfJinja(object):
         if stderr.strip():
             raise IOError(stderr)
 
-        return StringIO.StringIO(stdout)
+        return BytesIO(stdout)
 
     def __call__(self, data, attachments=[], pages=None):
         self.rendered = {}
@@ -215,6 +229,8 @@ class PdfJinja(object):
             else:
                 # Skip the field if it is already rendered by filter
                 if field not in self.rendered:
+                    if PY3:
+                        field = field.decode('utf-8')
                     self.rendered[field] = rendered_field
 
         filled = PdfFileReader(self.exec_pdftk(self.rendered))
@@ -265,7 +281,8 @@ def main():
     pages = args.page and args.page.split(",")
 
     import json
-    data = json.loads(args.json.read())
+    json_data = args.json.read().decode('utf-8')
+    data = json.loads(json_data)
     Attachment.font = args.font
     attachments = [
         Attachment(**kwargs) for kwargs in data.pop("attachments", [])

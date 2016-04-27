@@ -1,6 +1,12 @@
 import json
 import os
-import cStringIO as StringIO
+try:
+    from cStringIO import StringIO as BytesIO
+except ImportError:
+    try:
+        from StringIO import StringIO as BytesIO
+    except ImportError:
+        from io import BytesIO
 import sys
 import unittest
 
@@ -27,7 +33,7 @@ class PdfJinjaTestCase(unittest.TestCase):
 
     def test_render(self):
         output = self.pdfjinja(self.data, self.attachments)
-        outfile = StringIO.StringIO()
+        outfile = BytesIO()
         output.write(outfile)
         outfile.seek(0)
         self.assertTrue(len(outfile.read()) > 0, "Output PDF is not empty.")
