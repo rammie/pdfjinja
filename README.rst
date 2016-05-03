@@ -10,9 +10,10 @@ pdfjinja
 
 Use jinja templates to fill and sign PDF forms.
 
-You would like to fill out a PDF form using data from an external source
-such as a database or an excel file. Use a PDF editing software to edit
-the form. Use the tooltip field to specifiy a jinja template.
+You can use this library to fill out a PDF form using data from an external
+source such as a database or an excel file. Use a PDF editing software to edit
+the form and specifiy a jinja template in the tooltip property of the form
+field.
 
 
 Dependencies
@@ -24,11 +25,6 @@ Most of the packages below are taken from the Pillow documentation. You don't
 need all of them. In most cases, just pdftk will do.
 
 
-OSX::
-
-    brew install pdftk libtiff libjpeg webp little-cms2
-
-
 Ubuntu::
 
     apt-get install python-dev python-pip libtiff5-dev libjpeg8-dev \
@@ -36,9 +32,15 @@ Ubuntu::
         tk8.6-dev python-tk pdftk libmagickwand-dev
 
 
-Windows (Untested)::
+OSX::
 
-  * Install pdftk and ensure that it is on your path.
+  * Install pdftk (https://www.pdflabs.com/tools/pdftk-server/).
+  * Install dependencies for Pillow if you want to paste images.
+
+
+Windows::
+
+  * Install pdftk (https://www.pdflabs.com/tools/pdftk-server/).
   * Install dependencies for Pillow if you want to paste images.
 
 
@@ -87,4 +89,5 @@ Python::
 If you are using this with Flask as a webserver::
 
     from flask import current_app
-    pdfjinja = PdfJinja('form.pdf', current_app.jinja_env)
+    from pdfjinja import PdfJinja
+    pdf = PdfJinja('form.pdf', current_app.jinja_env)

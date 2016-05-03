@@ -252,23 +252,23 @@ class PdfJinja(object):
 def parse_args(description):
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
-        '-f', '--font', type=str, default=None,
+        "-f", "--font", type=str, default=None,
         help="TTF font for attachment labels.")
 
     parser.add_argument(
-        '-j', '--json', type=argparse.FileType('rb'), default=sys.stdin,
+        "-j", "--json", type=argparse.FileType("rb"), default=sys.stdin,
         help="JSON format file with data.")
 
     parser.add_argument(
-        '-p', '--page', type=str, default=None,
+        "-p", "--page", type=str, default=None,
         help="Pages to select (Comma separated).")
 
     parser.add_argument(
-        'pdf', type=str,
+        "pdf", type=str,
         help="PDF form with jinja2 tooltips.")
 
     parser.add_argument(
-        'out', nargs='?', type=argparse.FileType('wb'), default=sys.stdout,
+        "out", nargs="?", type=argparse.FileType("wb"), default=sys.stdout,
         help="PDF filled with the form data.")
 
     return parser.parse_args()
