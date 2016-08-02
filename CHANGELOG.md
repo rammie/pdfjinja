@@ -5,6 +5,15 @@ releases, visit GitHub:
 
 https://github.com/rammie/pdfjinja/releases
 
+## 1.0.0
+
+### Bugs
+
+* Add python 3 compatibility (thanks to Jenselme).
+
+[View commits](https://github.com/rammie/peewee/compare/1.0.0...0.0.5)
+
+
 ## 0.0.5
 
 ### Bugs
