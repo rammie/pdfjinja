@@ -91,3 +91,7 @@ If you are using this with Flask as a webserver::
     from flask import current_app
     from pdfjinja import PdfJinja
     pdf = PdfJinja('form.pdf', current_app.jinja_env)
+
+
+See examples/example.py for a more detailed python example. It might also be
+helpful to example the sample pdf template in examples/sample.pdf.
