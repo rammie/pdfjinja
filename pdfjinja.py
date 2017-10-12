@@ -120,8 +120,8 @@ class PdfJinja(object):
             date=self.format_date,
             paste=self.paste,
             check=self.check,
-            X=lambda v: "X" if v else " ",
-            Y=lambda v: "Y" if v else "N",
+            X=lambda v: "Yes" if v else "Off",
+            Y=lambda v: "Yes" if v else "Off",
         ))
 
     def check(self, data):
@@ -160,24 +160,46 @@ class PdfJinja(object):
             r.resolve() for r in annots if isinstance(r, PDFObjRef))
 
         widgets = (
-            r for r in annots if r["Subtype"].name == "Widget" and "T" in r)
+            r for r in annots if r["Subtype"].name == "Widget")
 
         for ref in widgets:
-            name = ref["T"]
-            field = self.fields.setdefault(name, {"name": name, "page": pgnum})
-            if "FT" in ref and ref["FT"].name in ("Btn", "Tx", "Ch", "Sig"):
-                field["rect"] = ref["Rect"]
+            try:
+                name = ref["T"]
+            except KeyError:
+                parent = ref['Parent'].resolve()
+                name = parent['T']
+                field = self.fields.setdefault(name, {"name": name, "page": pgnum})
+                if "FT" in ref and ref["FT"].name in ("Btn", "Tx", "Ch", "Sig"):
+                    field["rect"] = ref["Rect"]
 
-            if "TU" in ref:
-                tmpl = ref["TU"]
-                try:
-                    if ref["TU"].startswith(b"\xfe"):
-                        tmpl = tmpl.decode("utf-16")
-                    else:
-                        tmpl = tmpl.decode("utf-8")
-                    field["template"] = self.jinja_env.from_string(tmpl)
-                except (UnicodeDecodeError, TemplateSyntaxError) as err:
-                    logger.error("%s: %s %s", name, tmpl, err)
+                if "TU" in parent:
+                    tmpl = parent["TU"]
+                    try:
+                        if parent["TU"].startswith(b"\xfe"):
+                            tmpl = tmpl.decode("utf-16")
+                        else:
+                            tmpl = tmpl.decode("utf-8")
+                        field["template"] = self.jinja_env.from_string(tmpl)
+
+                    except (UnicodeDecodeError, TemplateSyntaxError) as err:
+                        logger.error("%s: %s %s", name, tmpl, err)
+            else:
+                field = self.fields.setdefault(name, {"name": name, "page": pgnum})
+                if "FT" in ref and ref["FT"].name in ("Btn", "Tx", "Ch", "Sig"):
+                    field["rect"] = ref["Rect"]
+
+                if "TU" in ref:
+                    tmpl = ref["TU"]
+
+                    try:
+                        if ref["TU"].startswith(b"\xfe"):
+                            tmpl = tmpl.decode("utf-16")
+                        else:
+                            tmpl = tmpl.decode("utf-8")
+                        field["template"] = self.jinja_env.from_string(tmpl)
+                    except (UnicodeDecodeError, TemplateSyntaxError) as err:
+                        logger.error("%s: %s %s", name, tmpl, err)
+
 
     def template_args(self, data):
         kwargs = {}
