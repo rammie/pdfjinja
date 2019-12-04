@@ -1,6 +1,9 @@
 # Annoying Mac OSX file
 .DS_Store
 
+# Editor
+.vscode
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -14,6 +17,7 @@ env/
 dev/
 dist/
 *.egg-info/
+.python-version
 
 # Sphinx documentation
 docs/_build/
