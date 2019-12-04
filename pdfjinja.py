@@ -119,14 +119,10 @@ class PdfJinja(object):
         self.jinja_env.filters.update(dict(
             date=self.format_date,
             paste=self.paste,
-            check=self.check,
-            X=lambda v: "Yes" if v else "Off",
-            Y=lambda v: "Yes" if v else "Off",
+            check=lambda v: "Yes" if v else "Off",
+            X=lambda v: "X" if v else " ",
+            Y=lambda v: "Y" if v else "N",
         ))
-
-    def check(self, data):
-        self.rendered[self.context["name"]] = bool(data)
-        return bool(data)
 
     def paste(self, data):
         rect = self.context["rect"]
