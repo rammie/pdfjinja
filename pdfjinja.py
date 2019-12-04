@@ -170,7 +170,8 @@ class PdfJinja(object):
                 ref = ref['Parent'].resolve()
                 name = ref['T']
             field = self.fields.setdefault(name, {"name": name, "page": pgnum})
-            if "FT" in data_holder and data_holder["FT"].name in ("Btn", "Tx", "Ch", "Sig"):
+            allowed_fts = ("Btn", "Tx", "Ch", "Sig")
+            if "FT" in data_holder and data_holder["FT"].name in allowed_fts:
                 field["rect"] = data_holder["Rect"]
 
             if "TU" in ref:
@@ -184,7 +185,6 @@ class PdfJinja(object):
                     field["template"] = self.jinja_env.from_string(tmpl)
                 except (UnicodeDecodeError, TemplateSyntaxError) as err:
                     logger.error("%s: %s %s", name, tmpl, err)
-
 
     def template_args(self, data):
         kwargs = {}
@@ -202,7 +202,8 @@ class PdfJinja(object):
         return dt.strftime("%m/%d/%y")
 
     def exec_pdftk(self, data):
-        fdf = forge_fdf("", data.items(), [], [], [], checkbox_checked_name="Yes")
+        fdf_kwargs = dict(checkbox_checked_name="Yes")
+        fdf = forge_fdf("", data.items(), [], [], [], **fdf_kwargs)
         args = [
             "pdftk",
             self.filename,
