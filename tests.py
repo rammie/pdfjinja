@@ -21,7 +21,8 @@ class PdfJinjaTestCase(unittest.TestCase):
         pdffile = os.path.join(self.datadir, "sample.pdf")
         jsonfile = os.path.join(self.datadir, "sample.json")
         Attachment.font = "examples/open-sans/regular.ttf"
-        self.data = json.loads(open(jsonfile).read())
+        with open(jsonfile) as f:
+            self.data = json.loads(f.read())
         self.attachments = [
             Attachment(**kwargs) for kwargs in self.data.pop("attachments")
         ]
